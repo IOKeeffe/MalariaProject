@@ -1,0 +1,23 @@
+---
+title: "FinalProj"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+options(dplyr.summarise.inform = FALSE)
+require(datasets)
+
+```
+
+WHO Data: https://apps.who.int/gho/data/node.main.A1366?lang=en
+Worldbank Data: https://data.worldbank.org/indicator/SH.MLR.INCD.P31
+ITN and IRS Data: https://apps.who.int/gho/data/node.main.MALITNIRS?lang=en
+
+```{r}
+dat1<-read.csv("API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
+dat1 <- dat1[ -c(5:44) ]
+# dat2<-read.csv("Metadata_Country_API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
+# dat3<-read.csv("Metadata_Indicator_API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv ")
+```
