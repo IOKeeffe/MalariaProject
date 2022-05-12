@@ -12,8 +12,8 @@ require(datasets)
 ```
 
 WHO Data: https://apps.who.int/gho/data/node.main.A1366?lang=en
-Worldbank Data: https://data.worldbank.org/indicator/SH.MLR.INCD.P31
-ITN and IRS Data: https://apps.who.int/gho/data/node.main.MALITNIRS?lang=en
+Worldbank Data: https://data.worldbank.org/indicator/SH.MLR.INCD.P3
+Prevention Data: https://data.unicef.org/resources/data_explorer/unicef_f/?ag=UNICEF&df=GLOBAL_DATAFLOW&ver=1.0&dq=AGO+BEN+BWA+BFA+BDI+CPV+CMR+CAF+TCD+COM+COG+COD+DJI+GNQ+ERI+ETH+GAB+GMB+GHA+KEN+LSO+LBR+MDG+MWI+MLI+MUS+MRT+MOZ+NAM+NER+NGA+RWA+STP+SEN+SYC+SLE+SOM+ZAF+SSD+SDN+TGO+UGA+TZA+ZMB+ZWE.MNCH_ITN+MNCH_ITN2+MNCH_ITNOWN+MNCH_ITNPREG+MNCH_MLRACT..&startPeriod=2016&endPeriod=2022
 
 ```{r}
 dat1<-read.csv("API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
