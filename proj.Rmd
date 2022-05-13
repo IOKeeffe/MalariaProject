@@ -15,9 +15,21 @@ WHO Data: https://apps.who.int/gho/data/node.main.A1366?lang=en
 Worldbank Data: https://data.worldbank.org/indicator/SH.MLR.INCD.P3
 Prevention Data: https://data.unicef.org/resources/data_explorer/unicef_f/?ag=UNICEF&df=GLOBAL_DATAFLOW&ver=1.0&dq=AGO+BEN+BWA+BFA+BDI+CPV+CMR+CAF+TCD+COM+COG+COD+DJI+GNQ+ERI+ETH+GAB+GMB+GHA+KEN+LSO+LBR+MDG+MWI+MLI+MUS+MRT+MOZ+NAM+NER+NGA+RWA+STP+SEN+SYC+SLE+SOM+ZAF+SSD+SDN+TGO+UGA+TZA+ZMB+ZWE.MNCH_ITN+MNCH_ITN2+MNCH_ITNOWN+MNCH_ITNPREG+MNCH_MLRACT..&startPeriod=2016&endPeriod=2022
 
+
+
 ```{r}
-dat1<-read.csv("API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
-dat1 <- dat1[ -c(5:44) ]
-# dat2<-read.csv("Metadata_Country_API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
-# dat3<-read.csv("Metadata_Indicator_API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv ")
+country.case.dat<-read.csv("API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
+country.case.dat<-country.case.dat[ -c(5:44) ]
+names(country.case.dat) <- gsub(x = names(country.case.dat), pattern = "X", replacement = "") 
+
+
+indicator.dat<-read.csv("Prevention.csv")
+indicator.dat$Country.Code=substr(indicator.dat$REF_AREA.Geographic.area, 1, 3)
+indicator.dat$REF_AREA.Geographic.area=substring(indicator.dat$REF_AREA.Geographic.area, 6)
+indicator.dat<- filter(indicator.dat, !str_detect(INDICATOR.Indicator,"MNCH_ITNPREG"))
+indicator.dat<-indicator.dat %>%
+  select(c(REF_AREA.Geographic.area, OBS_VALUE.Observation.Value, INDICATOR.Indicator, Country.Code, TIME_PERIOD.Time.period, SEX.Sex))
+
+full_dat<-left_join(indicator.dat, country.case.dat, by="Country.Code")
+
 ```
