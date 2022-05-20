@@ -72,11 +72,52 @@ country_means <- full.dat %>%
 ggplot(yearly_means, aes(x=Year, y=mean)) +
   geom_line() +
   geom_point()
-
-
-ggqqplot(c(yearly_means))
-
 ```
 
 
+Here we're grouping by before the date of measurement of either 
+ insecticide treated net (ITN) and/or indoor residual spraying (IRS), and getting the case mean,
+ and the year of measurement + the year after and getting the mean, then combining. 
 ```{r}
+pre.itn.dat <- full.dat %>%
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2")) %>%
+  filter(Year<TIME_PERIOD.Time.period) %>%
+  group_by(Country.Name) %>%
+  mutate(Pre.Admin.Case.Mean=mean(Cases)) %>%
+  select(Country.Name, Pre.Admin.Case.Mean) %>%
+  distinct()
+
+post.itn.dat <- full.dat %>%
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2") &
+    Year %in% c(TIME_PERIOD.Time.period, as.numeric(TIME_PERIOD.Time.period)+1)) %>%
+  group_by(Country.Name) %>%
+  mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
+  select(Country.Name, Post.Admin.Case.Mean) %>%
+  distinct()
+
+pre.post.itn.dat<-merge(pre.itn.dat, post.itn.dat)
+
+ggqqplot(pre.post.itn.dat$Pre.Admin.Case.Mean-pre.post.itn.dat$Post.Admin.Case.Mean)
+```
+
+```{r}
+
+
+pre.itn.irs.dat <- full.dat %>%
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN")) %>%
+  filter(Year==TIME_PERIOD.Time.period) %>%
+  group_by(Country.Name) %>%
+  mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
+  select(Country.Name, Post.Admin.Case.Mean) %>%
+  distinct()
+
+post.itn.irs.dat <- full.dat %>%
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN") &
+    Year %in% c(TIME_PERIOD.Time.period, as.numeric(TIME_PERIOD.Time.period)+1)) %>%
+  group_by(Country.Name) %>%
+  mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
+  select(Country.Name, Post.Admin.Case.Mean) %>%
+  distinct()
+
+pre.post.itn.irs.dat<-merge(pre.itn.irs.dat, post.itn.irs.dat)
+```
