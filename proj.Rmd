@@ -16,20 +16,67 @@ Worldbank Data: https://data.worldbank.org/indicator/SH.MLR.INCD.P3
 Prevention Data: https://data.unicef.org/resources/data_explorer/unicef_f/?ag=UNICEF&df=GLOBAL_DATAFLOW&ver=1.0&dq=AGO+BEN+BWA+BFA+BDI+CPV+CMR+CAF+TCD+COM+COG+COD+DJI+GNQ+ERI+ETH+GAB+GMB+GHA+KEN+LSO+LBR+MDG+MWI+MLI+MUS+MRT+MOZ+NAM+NER+NGA+RWA+STP+SEN+SYC+SLE+SOM+ZAF+SSD+SDN+TGO+UGA+TZA+ZMB+ZWE.MNCH_ITN+MNCH_ITN2+MNCH_ITNOWN+MNCH_ITNPREG+MNCH_MLRACT..&startPeriod=2016&endPeriod=2022
 
 
-
+Load Country Case data.
+Remove unnecessary columns and year columns with no data. 
+Replace year column names with just the year.
 ```{r}
 country.case.dat<-read.csv("API_SH.MLR.INCD.P3_DS2_en_csv_v2_4029728.csv")
-country.case.dat<-country.case.dat[ -c(5:44) ]
-names(country.case.dat) <- gsub(x = names(country.case.dat), pattern = "X", replacement = "") 
+country.case.dat<-country.case.dat[, -c(5:44, 66:67) ]
+country.case.dat<- country.case.dat %>%
+  select(-Indicator.Code)
+names(country.case.dat) <- gsub(x = names(country.case.dat), pattern = "X", replacement = "")
+country.case.dat<-country.case.dat %>%
+  select(-Indicator.Name)
+```
 
-
+Load indicator data.
+Change naming convention of some year columns.
+Make new country code column to link to country case data, change geographic area to country name.
+Change rows to total b/w male and female.
+Remove unused indicators from indicator column.
+Select only used columns
+Left Join Data, pivot year column 
+```{r}
 indicator.dat<-read.csv("Prevention.csv")
 indicator.dat$Country.Code=substr(indicator.dat$REF_AREA.Geographic.area, 1, 3)
-indicator.dat$REF_AREA.Geographic.area=substring(indicator.dat$REF_AREA.Geographic.area, 6)
-indicator.dat<- filter(indicator.dat, !str_detect(INDICATOR.Indicator,"MNCH_ITNPREG"))
-indicator.dat<-indicator.dat %>%
-  select(c(REF_AREA.Geographic.area, OBS_VALUE.Observation.Value, INDICATOR.Indicator, Country.Code, TIME_PERIOD.Time.period, SEX.Sex))
+indicator.dat$Country.Name=substring(indicator.dat$REF_AREA.Geographic.area, 6)
+indicator.dat$TIME_PERIOD.Time.period[indicator.dat$TIME_PERIOD.Time.period=="2017-06"]<-"2017"
 
-full_dat<-left_join(indicator.dat, country.case.dat, by="Country.Code")
+indicator.dat<-indicator.dat[indicator.dat$SEX.Sex=="_T: Total",]
+indicator.dat<- indicator.dat[
+  str_detect(indicator.dat$INDICATOR.Indicator,"MNCH_ITNOWN") |
+  str_detect(indicator.dat$INDICATOR.Indicator,"MNCH_ITN2"),]
+indicator.dat<-indicator.dat %>%
+  select(c(Country.Name, OBS_VALUE.Observation.Value, INDICATOR.Indicator, Country.Code, TIME_PERIOD.Time.period))
+
+full.dat<-left_join(indicator.dat, country.case.dat, by="Country.Code")
+
+full.dat<- full.dat %>% 
+  pivot_longer(c(7:27), names_to = "Year", values_to = "Cases")
+```
+
+left join columns
+get means of malaria cases by year
+QQplot
+test data
+Compare % with ITN and/or IRS with malaria cases that year and the following year
+```{r}
+yearly_means <- full.dat %>%
+  group_by(Year) %>%
+  summarize(mean=mean(Cases))
+
+country_means <- full.dat %>%
+  group_by(Country.Name) %>%
+  summarize(mean=mean(Cases))
+
+ggplot(yearly_means, aes(x=Year, y=mean)) +
+  geom_line() +
+  geom_point()
+
+
+ggqqplot(c(yearly_means))
 
 ```
+
+
+```{r}
