@@ -66,11 +66,15 @@ yearly_means <- full.dat %>%
   summarize(mean=mean(Cases))
 
 country_means <- full.dat %>%
-  group_by(Country.Name) %>%
+  group_by(Country.Code) %>%
   summarize(mean=mean(Cases))
 
 ggplot(yearly_means, aes(x=Year, y=mean)) +
   geom_line() +
+  geom_point()
+  
+ggplot(country_means, aes(x=Country.Code, y=mean))+
+  geom_line()+
   geom_point()
 ```
 
@@ -82,17 +86,17 @@ Here we're grouping by before the date of measurement of either
 pre.itn.dat <- full.dat %>%
   filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2")) %>%
   filter(Year<TIME_PERIOD.Time.period) %>%
-  group_by(Country.Name) %>%
+  group_by(Country.Code) %>%
   mutate(Pre.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Name, Pre.Admin.Case.Mean) %>%
+  select(Country.Code, Pre.Admin.Case.Mean) %>%
   distinct()
 
 post.itn.dat <- full.dat %>%
   filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2") &
     Year %in% c(TIME_PERIOD.Time.period, as.numeric(TIME_PERIOD.Time.period)+1)) %>%
-  group_by(Country.Name) %>%
+  group_by(Country.Code) %>%
   mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Name, Post.Admin.Case.Mean) %>%
+  select(Country.Code, Post.Admin.Case.Mean) %>%
   distinct()
 
 pre.post.itn.dat<-merge(pre.itn.dat, post.itn.dat)
@@ -106,17 +110,17 @@ ggqqplot(pre.post.itn.dat$Pre.Admin.Case.Mean-pre.post.itn.dat$Post.Admin.Case.M
 pre.itn.irs.dat <- full.dat %>%
   filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN")) %>%
   filter(Year==TIME_PERIOD.Time.period) %>%
-  group_by(Country.Name) %>%
-  mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Name, Post.Admin.Case.Mean) %>%
+  group_by(Country.Code) %>%
+  mutate(Pre.Admin.Case.Mean=mean(Cases)) %>%
+  select(Country.Code, Pre.Admin.Case.Mean) %>%
   distinct()
 
 post.itn.irs.dat <- full.dat %>%
   filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN") &
     Year %in% c(TIME_PERIOD.Time.period, as.numeric(TIME_PERIOD.Time.period)+1)) %>%
-  group_by(Country.Name) %>%
+  group_by(Country.Code) %>%
   mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Name, Post.Admin.Case.Mean) %>%
+  select(Country.Code, Post.Admin.Case.Mean) %>%
   distinct()
 
 pre.post.itn.irs.dat<-merge(pre.itn.irs.dat, post.itn.irs.dat)
