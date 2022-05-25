@@ -7,8 +7,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-require(datasets)
 
+library(ggpubr)
+library(betareg)
 ```
 
 WHO Data: https://apps.who.int/gho/data/node.main.A1366?lang=en
@@ -72,10 +73,6 @@ country_means <- full.dat %>%
 ggplot(yearly_means, aes(x=Year, y=mean)) +
   geom_line() +
   geom_point()
-  
-ggplot(country_means, aes(x=Country.Code, y=mean))+
-  geom_line()+
-  geom_point()
 ```
 
 
@@ -84,44 +81,65 @@ Here we're grouping by before the date of measurement of either
  and the year of measurement + the year after and getting the mean, then combining. 
 ```{r}
 pre.itn.dat <- full.dat %>%
-  filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2")) %>%
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN")) %>%
   filter(Year<TIME_PERIOD.Time.period) %>%
   group_by(Country.Code) %>%
-  mutate(Pre.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Code, Pre.Admin.Case.Mean) %>%
+  mutate(Pre.Measure.Case.Mean=mean(Cases)) %>%
+  mutate(Pre.Measure.Case.Mean.Prop = Pre.Measure.Case.Mean/1000) %>%
+  mutate(Percent.Households.With.ITN = OBS_VALUE.Observation.Value/100) %>%
+  select(Country.Name, Pre.Measure.Case.Mean, Pre.Measure.Case.Mean.Prop, Percent.Households.With.ITN) %>%
   distinct()
 
 post.itn.dat <- full.dat %>%
-  filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2") &
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN") &
     Year %in% c(TIME_PERIOD.Time.period, as.numeric(TIME_PERIOD.Time.period)+1)) %>%
   group_by(Country.Code) %>%
-  mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Code, Post.Admin.Case.Mean) %>%
+  mutate(Post.Measure.Case.Mean=mean(Cases)) %>%
+  mutate(Post.Measure.Case.Mean.Prop = Post.Measure.Case.Mean/1000) %>%
+  mutate(Percent.Households.With.ITN = OBS_VALUE.Observation.Value/100) %>%
+  select(Country.Code, Post.Measure.Case.Mean, Post.Measure.Case.Mean.Prop, Percent.Households.With.ITN) %>%
   distinct()
 
-pre.post.itn.dat<-merge(pre.itn.dat, post.itn.dat)
+full.itn.dat<-merge(pre.itn.dat, post.itn.dat)
 
-ggqqplot(pre.post.itn.dat$Pre.Admin.Case.Mean-pre.post.itn.dat$Post.Admin.Case.Mean)
+ggqqplot(full.itn.dat$Pre.Measure.Case.Mean-full.itn.dat$Post.Measure.Case.Mean)
 ```
 
 ```{r}
 
 
 pre.itn.irs.dat <- full.dat %>%
-  filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN")) %>%
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2")) %>%
   filter(Year==TIME_PERIOD.Time.period) %>%
   group_by(Country.Code) %>%
-  mutate(Pre.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Code, Pre.Admin.Case.Mean) %>%
+  mutate(Pre.Measure.Case.Mean=mean(Cases)) %>%
+  mutate(Pre.Measure.Case.Mean.Prop = Pre.Measure.Case.Mean/1000) %>%
+  mutate(Percent.Households.With.ITN.Or.IRS = OBS_VALUE.Observation.Value/100) %>%
+  select(Country.Code, Pre.Measure.Case.Mean, Pre.Measure.Case.Mean.Prop, Percent.Households.With.ITN.Or.IRS) %>%
   distinct()
 
 post.itn.irs.dat <- full.dat %>%
-  filter(str_detect(INDICATOR.Indicator,"MNCH_ITNOWN") &
+  filter(str_detect(INDICATOR.Indicator,"MNCH_ITN2") &
     Year %in% c(TIME_PERIOD.Time.period, as.numeric(TIME_PERIOD.Time.period)+1)) %>%
   group_by(Country.Code) %>%
-  mutate(Post.Admin.Case.Mean=mean(Cases)) %>%
-  select(Country.Code, Post.Admin.Case.Mean) %>%
+  mutate(Post.Measure.Case.Mean=mean(Cases)) %>%
+  mutate(Post.Measure.Case.Mean.Prop = Post.Measure.Case.Mean/1000) %>%
+  mutate(Percent.Households.With.ITN.Or.IRS = OBS_VALUE.Observation.Value/100) %>%
+  select(Country.Code, Post.Measure.Case.Mean, Post.Measure.Case.Mean.Prop, Percent.Households.With.ITN.Or.IRS) %>%
   distinct()
 
-pre.post.itn.irs.dat<-merge(pre.itn.irs.dat, post.itn.irs.dat)
+full.itn.irs.dat<-merge(pre.itn.irs.dat, post.itn.irs.dat)
+ggqqplot(full.itn.irs.dat$Pre.Measure.Case.Mean-full.itn.irs.dat$Post.Measure.Case.Mean)
+```
+```{r}
+ggplot(full.itn.irs.dat, aes(x=Percent.Households.With.ITN.Or.IRS, y=Post.Measure.Case.Mean)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+betareg(Post.Measure.Case.Mean.Prop ~ Percent.Households.With.ITN.Or.IRS, data=full.itn.irs.dat)
 ```
