@@ -133,10 +133,10 @@ ggqqplot(full.itn.irs.dat$Pre.Measure.Case.Mean-full.itn.irs.dat$Post.Measure.Ca
 ```
 ```{r}
 ggplot(full.itn.irs.dat, aes(x=Percent.Households.With.ITN.Or.IRS, y=Post.Measure.Case.Mean)) +
-  geom_line() +
+  geom_point() +
   geom_smooth(method = "lm", se = FALSE)
 ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean)) +
-  geom_line() +
+  geom_point() +
   geom_smooth(method = "lm", se = FALSE)
 ```
 
