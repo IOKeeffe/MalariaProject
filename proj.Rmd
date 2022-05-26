@@ -131,15 +131,29 @@ post.itn.irs.dat <- full.dat %>%
 full.itn.irs.dat<-merge(pre.itn.irs.dat, post.itn.irs.dat)
 ggqqplot(full.itn.irs.dat$Pre.Measure.Case.Mean-full.itn.irs.dat$Post.Measure.Case.Mean)
 ```
+
+beta regression
 ```{r}
-ggplot(full.itn.irs.dat, aes(x=Percent.Households.With.ITN.Or.IRS, y=Post.Measure.Case.Mean)) +
+b1<-betareg(Post.Measure.Case.Mean.Prop ~ Percent.Households.With.ITN.Or.IRS, data=full.itn.irs.dat)
+b2<-betareg(Post.Measure.Case.Mean.Prop ~ Percent.Households.With.ITN, data=full.itn.dat)
+summary(b1)
+summary(b2)
+
+
+ggplot(full.itn.irs.dat, aes(x=Percent.Households.With.ITN.Or.IRS, y=Post.Measure.Case.Mean.Prop)) +
+  labs(title="ITN or IRS Data") +
   geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
-ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean)) +
+  geom_smooth(method = "lm", se = FALSE, color="red") +
+  geom_line(aes(y = predict(b1, full.itn.irs.dat)), color="blue")
+ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean.Prop)) +
+  labs(title="ITN Data") +
   geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
+  geom_smooth(method = "lm", se = FALSE, color="red") +
+  geom_line(aes(y = predict(b2, full.itn.dat)), color="blue")
+
 ```
 
 ```{r}
-betareg(Post.Measure.Case.Mean.Prop ~ Percent.Households.With.ITN.Or.IRS, data=full.itn.irs.dat)
+wilcox.test(full.itn.irs.dat$Percent.Households.With.ITN.Or.IRS, y = full.itn.irs.dat$Post.Measure.Case.Mean.Prop)
+wilcox.test(full.itn.dat$Percent.Households.With.ITN, y = full.itn.irs.dat$Post.Measure.Case.Mean.Prop)
 ```
