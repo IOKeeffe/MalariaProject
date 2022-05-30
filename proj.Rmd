@@ -73,6 +73,10 @@ country_means <- full.dat %>%
 ggplot(yearly_means, aes(x=Year, y=mean)) +
   geom_line() +
   geom_point()
+
+ggplot(full.dat, aes(x=Year, y=Cases, group = Country.Code, color = factor(Country.Code))) +
+  geom_line() +
+  geom_point()
 ```
 
 
