@@ -72,11 +72,15 @@ country_means <- full.dat %>%
 
 ggplot(yearly_means, aes(x=Year, y=mean)) +
   geom_line() +
-  geom_point()
+  geom_point() +
+  labs(title = "Yearly Malaria Mean per 1000 Sub Saharan Population")
 
 ggplot(full.dat, aes(x=Year, y=Cases, group = Country.Code, color = factor(Country.Code))) +
+  theme(legend.position="none") +
   geom_line() +
-  geom_point()
+  geom_point() +
+  labs(title = "Yearly Malaria cases per 1000 citizens by country")
+ggqqplot(yearly_means$mean)
 ```
 
 
@@ -106,7 +110,9 @@ post.itn.dat <- full.dat %>%
 
 full.itn.dat<-merge(pre.itn.dat, post.itn.dat)
 
-ggqqplot(full.itn.dat$Pre.Measure.Case.Mean-full.itn.dat$Post.Measure.Case.Mean)
+ggqqplot(full.itn.dat$Pre.Measure.Case.Mean-full.itn.dat$Post.Measure.Case.Mean) + labs(title="pre-post")
+ggqqplot(full.itn.dat$Pre.Measure.Case.Mean) + labs(title="Pre ")
+ggqqplot(full.itn.dat$Post.Measure.Case.Mean) + labs(title="Post ")
 ```
 
 ```{r}
@@ -135,14 +141,13 @@ post.itn.irs.dat <- full.dat %>%
 full.itn.irs.dat<-merge(pre.itn.irs.dat, post.itn.irs.dat)
 ggqqplot(full.itn.irs.dat$Pre.Measure.Case.Mean-full.itn.irs.dat$Post.Measure.Case.Mean)
 ```
-
+get countries with multiple years listed, see how rate of malaria is changed by irs or itn
 beta regression
 ```{r}
 b1<-betareg(Post.Measure.Case.Mean.Prop ~ Percent.Households.With.ITN.Or.IRS, data=full.itn.irs.dat)
 b2<-betareg(Post.Measure.Case.Mean.Prop ~ Percent.Households.With.ITN, data=full.itn.dat)
 summary(b1)
 summary(b2)
-
 
 ggplot(full.itn.irs.dat, aes(x=Percent.Households.With.ITN.Or.IRS, y=Post.Measure.Case.Mean.Prop)) +
   labs(title="ITN or IRS Data") +
@@ -151,6 +156,8 @@ ggplot(full.itn.irs.dat, aes(x=Percent.Households.With.ITN.Or.IRS, y=Post.Measur
   geom_line(aes(y = predict(b1, full.itn.irs.dat)), color="blue")
 ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean.Prop)) +
   labs(title="ITN Data") +
+  ylab("Post Measure cases per 1000 citizens") +
+  xlab("Percent of households with ITN") +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color="red") +
   geom_line(aes(y = predict(b2, full.itn.dat)), color="blue")
@@ -158,6 +165,6 @@ ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean
 ```
 
 ```{r}
-wilcox.test(full.itn.irs.dat$Percent.Households.With.ITN.Or.IRS, y = full.itn.irs.dat$Post.Measure.Case.Mean.Prop)
-wilcox.test(full.itn.dat$Percent.Households.With.ITN, y = full.itn.irs.dat$Post.Measure.Case.Mean.Prop)
+t.test(full.itn.irs.dat$Pre.Measure.Case.Mean, full.itn.irs.dat$Post.Measure.Case.Mean, paired = TRUE, alternative = "two.sided")
+t.test(full.itn.dat$Pre.Measure.Case.Mean, full.itn.dat$Post.Measure.Case.Mean, paired = TRUE, alternative = "two.sided")
 ```
