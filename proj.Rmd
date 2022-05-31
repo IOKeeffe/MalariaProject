@@ -13,7 +13,6 @@ library(betareg)
 ```
 
 WHO Data: https://apps.who.int/gho/data/node.main.A1366?lang=en
-Worldbank Data: https://data.worldbank.org/indicator/SH.MLR.INCD.P3
 Prevention Data: https://data.unicef.org/resources/data_explorer/unicef_f/?ag=UNICEF&df=GLOBAL_DATAFLOW&ver=1.0&dq=AGO+BEN+BWA+BFA+BDI+CPV+CMR+CAF+TCD+COM+COG+COD+DJI+GNQ+ERI+ETH+GAB+GMB+GHA+KEN+LSO+LBR+MDG+MWI+MLI+MUS+MRT+MOZ+NAM+NER+NGA+RWA+STP+SEN+SYC+SLE+SOM+ZAF+SSD+SDN+TGO+UGA+TZA+ZMB+ZWE.MNCH_ITN+MNCH_ITN2+MNCH_ITNOWN+MNCH_ITNPREG+MNCH_MLRACT..&startPeriod=2016&endPeriod=2022
 
 
@@ -64,11 +63,11 @@ Compare % with ITN and/or IRS with malaria cases that year and the following yea
 ```{r}
 yearly_means <- full.dat %>%
   group_by(Year) %>%
-  summarize(mean=mean(Cases))
+  summarize(mean=mean(Cases), sd=sd(Cases), median=median(Cases))
 
 country_means <- full.dat %>%
   group_by(Country.Code) %>%
-  summarize(mean=mean(Cases))
+  summarize(mean=mean(Cases), sd=sd(Cases), median=median(Cases))
 
 ggplot(yearly_means, aes(x=Year, y=mean)) +
   geom_line() +
@@ -165,6 +164,6 @@ ggplot(full.itn.dat, aes(x=Percent.Households.With.ITN, y=Post.Measure.Case.Mean
 ```
 
 ```{r}
-t.test(full.itn.irs.dat$Pre.Measure.Case.Mean, full.itn.irs.dat$Post.Measure.Case.Mean, paired = TRUE, alternative = "two.sided")
-t.test(full.itn.dat$Pre.Measure.Case.Mean, full.itn.dat$Post.Measure.Case.Mean, paired = TRUE, alternative = "two.sided")
+wilcox.test(full.itn.irs.dat$Percent.Households.With.ITN.Or.IRS, y = full.itn.irs.dat$Post.Measure.Case.Mean.Prop)
+wilcox.test(full.itn.dat$Percent.Households.With.ITN, y = full.itn.irs.dat$Post.Measure.Case.Mean.Prop)
 ```
